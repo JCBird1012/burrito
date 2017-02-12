@@ -8,6 +8,8 @@ import (
 
 	"github.com/JCBird1012/chipotle-cli/api"
 	"github.com/JCBird1012/chipotle-cli/config"
+	"github.com/JCBird1012/chipotle-cli/orderModel"
+	"github.com/JCBird1012/chipotle-cli/utils"
 	"github.com/jessfraz/weather/geocode"
 	"github.com/jroimartin/gocui"
 )
@@ -15,8 +17,6 @@ import (
 const ()
 
 var (
-	thing         string
-	serverURI     string
 	version       bool
 	geo           geocode.Geocode
 	location      string
@@ -25,6 +25,15 @@ var (
 	test          bool
 	isInteractive bool
 	userToken     string
+	multi         bool
+	fName         string
+	fFilling      string
+	fBeans        string
+	fRice         string
+	fToppings     []string
+	fDrink        string
+	fCheese       bool
+	fStoreID      int
 )
 
 const (
@@ -37,16 +46,14 @@ func init() {
 	flag.BoolVar(&test, "test", false, "do test thing")
 	flag.BoolVar(&license, "license", false, "print out license information")
 	flag.StringVar(&location, "location", "", "zipcode, city or state, defaults to ip location")
-	flag.BoolVar(&version, "version", false, "print version and exit")
-	flag.StringVar(&thing, "thing", "", "do thing and exit")
-	flag.StringVar(&serverURI, "serverURI", defaultServerURI, "URL of the Chipotle API")
+
 	flag.BoolVar(&guac, "guac", false, "Accept guac prompt")
 	flag.BoolVar(&guac, "yes", false, "Accept guac prompt (alias)")
 	flag.BoolVar(&guac, "y", false, "Accept guac prompt(alias)")
 
 	flag.Usage = func() {
 		fmt.Printf("This is the burrito CLI.\n")
-		fmt.Printf("Usage: burrito-get [<options>][<arguments> ...]\n")
+		fmt.Printf("Usage: burrito-get [Mealtype][<options> ...]\n")
 		fmt.Printf("Options:\n")
 		flag.PrintDefaults()
 	}
@@ -54,20 +61,75 @@ func init() {
 	if flag.NFlag() < 1 {
 		flag.Usage()
 	}
-
-	if serverURI == "" {
-		usageAndExit("Enter a Chipotle API endpoint please or leave it blank", 0)
-	}
-
 	if test {
 		fmt.Printf("This is a test\n")
 		userToken = api.Login()
 		fmt.Printf("userToken is: %s", userToken)
+
+		fmt.Printf("This is something else %s \n", os.Args[2])
+		if utils.IsInArray(os.Args[2], order.Mealtypes) {
+			fmt.Print("WE FOUND IT\n")
+		} else {
+			fmt.Print("we didnt find it\n")
+		}
 	}
-	if isInteractive {
-		fmt.Printf("is interactive: %t\n", isInteractive)
-		interactive()
+	// begin parse tree
+	if utils.IsInArray(os.Args[1], order.Mealtypes) {
+		// They used the command to orbder a single meal
+		// see if things are defined or else pick sensible defaults
+		if len(fName) <= 0 {
+			fName = "myBurrito"
+		}
+		if len(fFilling) <= 0 || !utils.IsInArray(fFilling, order.Fillings) {
+			// TODO: warn them that they didn't choose a filling
+			fFilling = order.Fillings[0]
+		}
+		if len(fBeans) <= 0 || !utils.IsInArray(fBeans, order.Beans) {
+			fBeans = order.Beans[0]
+		}
+		if len(fRice) <= 0 || !utils.IsInArray(fRice, order.Rice) {
+			fRice = order.Rice[0]
+		}
+		if len(fToppings) <= 0 {
+			//TODO: nag about lack of Toppings
+			fToppings = []string{order.Toppings[0]}
+		}
+		if len(fDrink) <= 0 {
+			// fine, a drink is optional
+		}
+		if fStoreID == 0 {
+			// TODO:nag for root store id, probaly not legit etc
+		}
+		myOrder := order.Order{
+			Name:     fName,
+			Mealtype: os.Args[1],
+			Filling:  fFilling,
+			Beans:    fBeans,
+			Rice:     fRice,
+			Toppings: fToppings,
+			Drink:    fDrink,
+			Cheese:   fCheese,
+			StoreID:  fStoreID}
+		fmt.Printf(myOrder.Name)
+
+	} else {
+		// They didn't , check if it's a multi and expect the appropriate params
+		if os.Args[1] == "multi" {
+			// Yep it's multi, are the params there?
+			if os.Args[2] == "path" {
+				// yep, the params are there, does it open a valid file location?
+				// TODO: test file validity
+			}
+		}
+		// They didnt go for multi, maybe they want an interactive shell?
+		if isInteractive {
+			fmt.Printf("is interactive: %t\n", isInteractive)
+			interactive()
+		}
 	}
+	// Huh, not interactive, and we're fresh out of ideas..
+	// let's just print some stuff out and hope they go away
+	flag.Usage()
 }
 
 func main() {
@@ -75,14 +137,7 @@ func main() {
 		fmt.Printf("Chipotle CLI version %s,build %s", config.VERSION, config.GITCOMMIT)
 		return
 	}
-	if len(thing) > 0 {
 
-		fmt.Printf("we got a thing!\n")
-		fmt.Printf("length of thing is: %d", len(thing))
-		fmt.Printf(thing)
-	} else {
-		// fmt.Printf("we didn't get a thing!\n")
-	}
 	var err error
 	if location == "" {
 		geo, err = geocode.Autolocate()

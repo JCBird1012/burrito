@@ -34,4 +34,8 @@ type Order struct {
 	Toppings []string
 	Drink    string
 	Cheese   bool
+	StoreID  int
 }
+
+// quantity:1
+// portion: regular
