@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -63,7 +64,7 @@ func init() {
 	}
 	if test {
 		fmt.Printf("This is a test\n")
-		userToken = api.Login()
+		userToken = api.Login("username", "password")
 		fmt.Printf("userToken is: %s", userToken)
 
 		fmt.Printf("This is something else %s \n", os.Args[2])
@@ -111,6 +112,11 @@ func init() {
 			Cheese:   fCheese,
 			StoreID:  fStoreID}
 		fmt.Printf(myOrder.Name)
+		myJSONObj, err := json.Marshal(myOrder)
+		if err != nil {
+			fmt.Print(err)
+		}
+		fmt.Print(string(myJSONObj))
 
 	} else {
 		// They didn't , check if it's a multi and expect the appropriate params
