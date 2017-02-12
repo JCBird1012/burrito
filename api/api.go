@@ -3,13 +3,11 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
 
-// Global variables
-const baseURL string = "https://order.chipotle.com"
+const BASE_URL string = "https://order.chipotle.com"
 
 type loginInformation struct {
 	Username string
@@ -17,20 +15,38 @@ type loginInformation struct {
 	Persist  bool
 }
 
-// Login does things
-func Login() string {
+type Location struct {
+	ID int `json:"Id"`
+	Name string `json:"Name"`
+	Address string `json:"Address"`
+	Address2 string `json:"Address2"`
+	City string `json:"City"`
+	State string `json:"State"`
+	Country string `json:"Country"`
+	Zip string `json:"Zip"`
+	Phone string `json:"Phone"`
+	Live bool `json:"Live"`
+	OnlineOrderingLive bool `json:"OnlineOrderingLive"`
+	ComingSoon bool `json:"ComingSoon"`
+	Latitude float64 `json:"Latitude"`
+	Longitude float64 `json:"Longitude"`
+	Distance string `json:"Distance"`
+	SpecialMessage string `json:"SpecialMessage"`
+	BusinessHourText string `json:"BusinessHourText"`
+}
+
+func login(username string, password string) (userToken string) {
 	login := &loginInformation{
-		Username: "jbirdcaicedo@yahoo.com",
-		Password: "burritos123",
+		Username: username,
+		Password: password,
 		Persist:  false}
 
 	loginJSON, _ := json.Marshal(login)
 
 	b := bytes.NewBufferString(string(loginJSON))
 
-	req, _ := http.NewRequest("POST", baseURL+"/api/customer/login", b)
+	req, _ := http.NewRequest("POST", BASE_URL+"/api/customer/login", b)
 
-	req.Header.Add("json", "true")
 	req.Header.Add("content-type", "application/json")
 
 	res, err := http.DefaultClient.Do(req)
@@ -38,7 +54,7 @@ func Login() string {
 	defer res.Body.Close()
 
 	if err != nil {
-		fmt.Println("AHHHH! We've encountered an error!")
+		panic("We've encountered an error!")
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
@@ -49,6 +65,29 @@ func Login() string {
 		panic(err)
 	}
 
-	userCookie := response["CustomerToken"].(string)
-	return userCookie
+	var USER_COOKIE string = response["CustomerToken"].(string)
+	return USER_COOKIE
+}
+
+func GetLocations(postalCode string) (response []location) {
+	b := bytes.NewBufferString(`{"Address": ` + postalCode + `, "Radius":50, "StartIndex":1, "ReturnCount": 5}`)
+	
+	req, _ := http.NewRequest("POST", BASE_URL+"/api/restaurant/restaurantssearch", b)
+
+	req.Header.Add("content-type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+
+	if err != nil {
+		panic("We've encountered an error!")
+	}
+
+	body, _ := ioutil.ReadAll(res.Body)
+	
+	locations := make([]location,0)
+    json.Unmarshal(body, &locations)
+    
+    return locations
 }
