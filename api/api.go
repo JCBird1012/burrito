@@ -8,7 +8,8 @@ import (
 	"net/http"
 )
 
-const BASE_URL string = "https://order.chipotle.com"
+// Global variables
+const baseURL string = "https://order.chipotle.com"
 
 type loginInformation struct {
 	Username string
@@ -16,7 +17,8 @@ type loginInformation struct {
 	Persist  bool
 }
 
-func login() {
+// Login does things
+func Login() string {
 	login := &loginInformation{
 		Username: "jbirdcaicedo@yahoo.com",
 		Password: "burritos123",
@@ -26,7 +28,7 @@ func login() {
 
 	b := bytes.NewBufferString(string(loginJSON))
 
-	req, _ := http.NewRequest("POST", BASE_URL+"/api/customer/login", b)
+	req, _ := http.NewRequest("POST", baseURL+"/api/customer/login", b)
 
 	req.Header.Add("json", "true")
 	req.Header.Add("content-type", "application/json")
@@ -36,7 +38,7 @@ func login() {
 	defer res.Body.Close()
 
 	if err != nil {
-		fmt.Println("We've encountered an error!")
+		fmt.Println("AHHHH! We've encountered an error!")
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
@@ -47,6 +49,6 @@ func login() {
 		panic(err)
 	}
 
-	USER_COOKIE = response["CustomerToken"].(string)
-	return USER_COOKIE
+	userCookie := response["CustomerToken"].(string)
+	return userCookie
 }
