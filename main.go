@@ -51,16 +51,14 @@ func init() {
 	flag.BoolVar(&guac, "guac", false, "Accept guac prompt")
 	flag.BoolVar(&guac, "yes", false, "Accept guac prompt (alias)")
 	flag.BoolVar(&guac, "y", false, "Accept guac prompt(alias)")
-
 	flag.Usage = func() {
-		fmt.Printf("This is the burrito CLI.\n")
 		fmt.Printf("Usage: burrito-get [Mealtype][<options> ...]\n")
 		fmt.Printf("Options:\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
-	if flag.NFlag() < 1 {
-		flag.Usage()
+	if len(os.Args) < 1 {
+		usageAndExit("Insufficient flags", 0)
 	}
 	if test {
 		fmt.Printf("This is a test\n")
@@ -135,7 +133,7 @@ func init() {
 	}
 	// Huh, not interactive, and we're fresh out of ideas..
 	// let's just print some stuff out and hope they go away
-	flag.Usage()
+	// flag.Usage()
 }
 
 func main() {
