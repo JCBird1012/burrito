@@ -77,24 +77,38 @@ func init() {
 		// They used the command to orbder a single meal
 		// see if things are defined or else pick sensible defaults
 		if len(fName) <= 0 {
-			fName = "myBurrito"
+			fName = "anonymous_" + os.Args[1]
+
+			fmt.Println("[WARN] You didn't specify a name for your " + os.Args[1])
+			fmt.Println("\t - using sane default, \"" + fName + "\"")
 		}
 		if len(fFilling) <= 0 || !utils.IsInArray(fFilling, order.Fillings) {
-			// TODO: warn them that they didn't choose a filling
 			fFilling = order.Fillings[0]
+
+			fmt.Println("[WARN] You didn't specify a filling for your " + os.Args[1])
+			fmt.Println("\t - using sane default, \"" + fFilling + "\"")
 		}
 		if len(fBeans) <= 0 || !utils.IsInArray(fBeans, order.Beans) {
 			fBeans = order.Beans[0]
+
+			fmt.Println("[WARN] You didn't specify a bean type for your " + os.Args[1])
+			fmt.Println("\t - using sane default, \"" + fBeans + "\"")
 		}
 		if len(fRice) <= 0 || !utils.IsInArray(fRice, order.Rice) {
 			fRice = order.Rice[0]
+
+			fmt.Println("[WARN] You didn't specify a rice type for your " + os.Args[1])
+			fmt.Println("\t - using sane default, \"" + fRice + "\"")
 		}
 		if len(fToppings) <= 0 {
-			//TODO: nag about lack of Toppings
 			fToppings = []string{order.Toppings[0]}
+
+			fmt.Println("[WARN] You didn't specify a for  toppings list for your " + os.Args[1])
+			fmt.Println("\t - using sane default, \"" + fToppings[0] + "\"")
 		}
 		if len(fDrink) <= 0 {
-			// fine, a drink is optional
+			fmt.Println("[WARN] you didn't specify a drink for your meal")
+			fmt.Println("\t - that's fine... I hope it's not spicy")
 		}
 		if fStoreID == 0 {
 			// TODO:nag for root store id, probaly not legit etc
@@ -109,12 +123,14 @@ func init() {
 			Drink:    fDrink,
 			Cheese:   fCheese,
 			StoreID:  fStoreID}
-		fmt.Printf(myOrder.Name)
-		myJSONObj, err := json.Marshal(myOrder)
+		myJSONObj, err := json.MarshalIndent(myOrder, "", "    ")
 		if err != nil {
 			fmt.Print(err)
 		}
-		fmt.Print(string(myJSONObj))
+		fmt.Println("[INFO] One " + myOrder.Name + ", coming up!")
+		fmt.Println(string(myJSONObj))
+		fmt.Println("Is this order correct? [y/N]")
+		// r  := fmt.Scan(a)
 
 	} else {
 		// They didn't , check if it's a multi and expect the appropriate params
