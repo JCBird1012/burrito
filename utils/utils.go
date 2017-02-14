@@ -1,6 +1,12 @@
 package utils
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+)
 
 // IsInArray linearn search if thing is in array
 func IsInArray(thing string, things []string) bool {
@@ -8,7 +14,7 @@ func IsInArray(thing string, things []string) bool {
 		if things[i] == thing {
 			return true
 		}
-		fmt.Printf("%s is %s : %t\n", things[i], thing, things[i] == thing)
+		// fmt.Printf("%s is %s : %t\n", things[i], thing, things[i] == thing)
 	}
 	return false
 }
@@ -34,4 +40,25 @@ func AllInArray(things []string, others []string) []string {
 		}
 	}
 	return report
+}
+
+func AskForConfirmation(s string) bool {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Printf("%s [y/n]: ", s)
+
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		response = strings.ToLower(strings.TrimSpace(response))
+
+		if response == "y" || response == "yes" {
+			return true
+		} else if response == "n" || response == "no" {
+			return false
+		}
+	}
 }

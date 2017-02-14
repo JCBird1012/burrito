@@ -32,9 +32,11 @@ var (
 	fBeans        string
 	fRice         string
 	fToppings     []string
+	fStrToppings  string
 	fDrink        string
 	fCheese       bool
 	fStoreID      int
+	fMealType     string
 )
 
 const (
@@ -77,8 +79,29 @@ func init() {
 	flag.BoolVar(&guac, "guac", false, "Accept guac prompt")
 	flag.BoolVar(&guac, "yes", false, "Accept guac prompt (alias)")
 	flag.BoolVar(&guac, "y", false, "Accept guac prompt(alias)")
+
+	// Parse burrito Options
+	// fName         string
+	// fFilling      string
+	// fBeans        string
+	// fRice         string
+	// fToppings     []string
+	// fDrink        string
+	// fCheese       bool
+	// fStoreID      int
+	flag.StringVar(&fName, "name", "", "Sets the order display name")
+	flag.StringVar(&fFilling, "filling", "Steak", "Sets the filling type")
+	flag.StringVar(&fFilling, "meat", "Steak", "Sets the filling type (alias)")
+	flag.StringVar(&fBeans, "beans", "BeansBlack", "Sets the bean type")
+	flag.StringVar(&fRice, "rice", "RiceWhite", "Sets the rice type")
+	flag.StringVar(&fStrToppings, "toppings", "SalsaTopping", "Sets the topping type")
+	flag.StringVar(&fDrink, "drink", "SodaLarge", "Sets the drink type")
+	flag.BoolVar(&fCheese, "cheese", true, "Sets the cheese preference")
+	flag.IntVar(&fStoreID, "storeID", 0, "Sets the store id to order from")
+	flag.StringVar(&fMealType, "meal", "Burrito", "Sets the meat type")
+
 	flag.Usage = func() {
-		fmt.Printf("Usage: burrito-get [Mealtype][<options> ...]\n")
+		fmt.Printf("Usage: mexi-get [Mealtype][<options> ...]\n")
 		fmt.Printf("Options:\n")
 		flag.PrintDefaults()
 	}
@@ -99,11 +122,12 @@ func init() {
 		}
 	}
 	// begin parse tree
-	if utils.IsInArray(os.Args[1], order.Mealtypes) {
+	if utils.IsInArray(fMealType, order.Mealtypes) {
 		// They used the command to orbder a single meal
 		// see if things are defined or else pick sensible defaults
 		if len(fName) <= 0 {
-			fName = "anonymous_" + os.Args[1]
+			log.Debug("They actually specified: " + fName)
+			fName = "Anonymous_" + fMealType
 
 			log.Warning("You didn't specify a name for your " + os.Args[1] + "\n" +
 				"\t - using sane default, \"" + fName + "\"")
@@ -121,6 +145,7 @@ func init() {
 				"\t - using sane default, \"" + fBeans + "\"")
 		}
 		if len(fRice) <= 0 || !utils.IsInArray(fRice, order.Rice) {
+			log.Debug("They actually specified: " + fRice)
 			fRice = order.Rice[0]
 
 			log.Warning(" You didn't specify a rice type for your " + os.Args[1] + "\n" +
@@ -129,7 +154,7 @@ func init() {
 		if len(fToppings) <= 0 {
 			fToppings = []string{order.Toppings[0]}
 
-			log.Warning(" You didn't specify a for  toppings list for your " + os.Args[1] + "\n" +
+			log.Warning(" You didn't specify any toppings list for your " + os.Args[1] + "\n" +
 				"\t - using sane default, \"" + fToppings[0] + "\"")
 		}
 		if len(fDrink) <= 0 {
@@ -142,7 +167,7 @@ func init() {
 
 		myOrder := order.Order{
 			Name:     fName,
-			Mealtype: os.Args[1],
+			Mealtype: fMealType,
 			Filling:  fFilling,
 			Beans:    fBeans,
 			Rice:     fRice,
@@ -156,8 +181,12 @@ func init() {
 		}
 		log.Notice("One " + myOrder.Name + ", coming up!" + "\n" +
 			string(myJSONObj))
-		log.Notice("Is this order correct? [y/N]")
-		// r  := fmt.Scan(a)
+		c := utils.AskForConfirmation("Is this order correct?")
+		if c {
+			log.Notice("sweet... ordering.")
+		} else {
+			log.Error("order is not correct, sad")
+		}
 
 	} else {
 		// They didn't , check if it's a multi and expect the appropriate params
@@ -199,7 +228,7 @@ func main() {
 			fmt.Print(err)
 		}
 	}
-	fmt.Printf("Zipcode is : %s\n", geo.PostalCode)
+	log.Debug("Zipcode is : " + geo.PostalCode)
 }
 
 //with respect to jessfraz/weather/blog/master/main.go:117
