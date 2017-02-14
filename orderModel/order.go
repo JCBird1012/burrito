@@ -1,5 +1,10 @@
 package order
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 // Mealtypes defines what physical form your torilla will take
 var Mealtypes = []string{"Burrito", "Bowl", "Salad", "Tacos"}
 
@@ -37,5 +42,33 @@ type Order struct {
 	StoreID  int
 }
 
-// quantity:1
-// portion: regular
+// PrettyMenu does things
+func PrettyMenu() string {
+	var report string
+
+	strMealTypes, err := json.Marshal(Mealtypes)
+	strBeans, err := json.Marshal(Beans)
+	strRice, err := json.Marshal(Rice)
+	strFillings, err := json.Marshal(Fillings)
+	strToppings, err := json.Marshal(Toppings)
+	strTortillas, err := json.Marshal(Tortillas)
+	strDrinks, err := json.Marshal(Drinks)
+	strSides, err := json.Marshal(Sides)
+	if err != nil {
+		return "Error parsing menu"
+	}
+
+	report = fmt.Sprintln(
+		" + ---- Food Configuration: \n" +
+			" - meals:\t" + string(strMealTypes) + "\n" +
+			" - fillings:\t" + string(strFillings) + "\n" +
+			" - beans:\t" + string(strBeans) + "\n" +
+			" - rice:\t" + string(strRice) + "\n" +
+			" - toppings:\t" + string(strToppings) + "\n" +
+			" - tortillas:\t" + string(strTortillas) + "\n" +
+			" + ---- Auxillary Items: " + "\n" +
+			" - drinks:\t" + string(strDrinks) + "\n" +
+			" - sides:\t" + string(strSides) + "\n")
+
+	return report
+}

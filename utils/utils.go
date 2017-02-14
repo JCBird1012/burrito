@@ -42,6 +42,8 @@ func AllInArray(things []string, others []string) []string {
 	return report
 }
 
+// AskForConfirmation does things
+// with respect to m4ng0squ4sh/confirm.go https://gist.github.com/m4ng0squ4sh/3dcbb0c8f6cfe9c66ab8008f55f8f28b
 func AskForConfirmation(s string) bool {
 	reader := bufio.NewReader(os.Stdin)
 

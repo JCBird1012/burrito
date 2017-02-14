@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/JCBird1012/chipotle-cli/api"
 	"github.com/JCBird1012/chipotle-cli/config"
@@ -37,6 +38,7 @@ var (
 	fCheese       bool
 	fStoreID      int
 	fMealType     string
+	fShowMenu     bool
 )
 
 const (
@@ -90,15 +92,16 @@ func init() {
 	// fCheese       bool
 	// fStoreID      int
 	flag.StringVar(&fName, "name", "", "Sets the order display name")
-	flag.StringVar(&fFilling, "filling", "Steak", "Sets the filling type")
-	flag.StringVar(&fFilling, "meat", "Steak", "Sets the filling type (alias)")
-	flag.StringVar(&fBeans, "beans", "BeansBlack", "Sets the bean type")
-	flag.StringVar(&fRice, "rice", "RiceWhite", "Sets the rice type")
+	flag.StringVar(&fFilling, "filling", "", "Sets the filling type")
+	flag.StringVar(&fFilling, "meat", "", "Sets the filling type (alias)")
+	flag.StringVar(&fBeans, "beans", "", "Sets the bean type")
+	flag.StringVar(&fRice, "rice", "", "Sets the rice type")
 	flag.StringVar(&fStrToppings, "toppings", "SalsaTopping", "Sets the topping type")
-	flag.StringVar(&fDrink, "drink", "SodaLarge", "Sets the drink type")
-	flag.BoolVar(&fCheese, "cheese", true, "Sets the cheese preference")
+	flag.StringVar(&fDrink, "drink", "", "Sets the drink type")
+	flag.BoolVar(&fCheese, "cheese", false, "Sets the cheese preference")
 	flag.IntVar(&fStoreID, "storeID", 0, "Sets the store id to order from")
 	flag.StringVar(&fMealType, "meal", "Burrito", "Sets the meat type")
+	flag.BoolVar(&fShowMenu, "menu", true, "Shows the availible menu")
 
 	flag.Usage = func() {
 		fmt.Printf("Usage: mexi-get [Mealtype][<options> ...]\n")
@@ -108,6 +111,9 @@ func init() {
 	flag.Parse()
 	if len(os.Args) < 1 {
 		usageAndExit("Insufficient flags", 0)
+	}
+	if fShowMenu {
+		fmt.Println(order.PrettyMenu())
 	}
 	if test {
 		log.Debug("This is a test\n")
@@ -126,36 +132,36 @@ func init() {
 		// They used the command to orbder a single meal
 		// see if things are defined or else pick sensible defaults
 		if len(fName) <= 0 {
-			log.Debug("They actually specified: " + fName)
 			fName = "Anonymous_" + fMealType
 
-			log.Warning("You didn't specify a name for your " + os.Args[1] + "\n" +
+			log.Warning("You didn't specify a name for your " + fMealType + "\n" +
 				"\t - using sane default, \"" + fName + "\"")
 		}
 		if len(fFilling) <= 0 || !utils.IsInArray(fFilling, order.Fillings) {
 			fFilling = order.Fillings[0]
 
-			log.Warning(" You didn't specify a filling for your " + os.Args[1] + "\n" +
+			log.Warning(" You didn't specify a filling for your " + fMealType + "\n" +
 				"\t - using sane default, \"" + fFilling + "\"")
 		}
 		if len(fBeans) <= 0 || !utils.IsInArray(fBeans, order.Beans) {
 			fBeans = order.Beans[0]
 
-			log.Warning(" You didn't specify a bean type for your " + os.Args[1] + "\n" +
+			log.Warning(" You didn't specify a bean type for your " + fMealType + "\n" +
 				"\t - using sane default, \"" + fBeans + "\"")
 		}
 		if len(fRice) <= 0 || !utils.IsInArray(fRice, order.Rice) {
-			log.Debug("They actually specified: " + fRice)
 			fRice = order.Rice[0]
 
-			log.Warning(" You didn't specify a rice type for your " + os.Args[1] + "\n" +
+			log.Warning(" You didn't specify a rice type for your " + fMealType + "\n" +
 				"\t - using sane default, \"" + fRice + "\"")
 		}
-		if len(fToppings) <= 0 {
+		if len(fStrToppings) <= 0 {
 			fToppings = []string{order.Toppings[0]}
 
-			log.Warning(" You didn't specify any toppings list for your " + os.Args[1] + "\n" +
+			log.Warning(" You didn't specify any toppings  for your " + fMealType + "\n" +
 				"\t - using sane default, \"" + fToppings[0] + "\"")
+		} else {
+			fToppings = strings.Split(fStrToppings, ",")
 		}
 		if len(fDrink) <= 0 {
 			log.Warning(" you didn't specify a drink for your meal" + "\n" +
