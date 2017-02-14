@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/JCBird1012/chipotle-cli/api"
@@ -13,6 +12,7 @@ import (
 	"github.com/JCBird1012/chipotle-cli/utils"
 	"github.com/jessfraz/weather/geocode"
 	"github.com/jroimartin/gocui"
+	"github.com/op/go-logging"
 )
 
 const ()
@@ -41,7 +41,33 @@ const (
 	defaultServerURI string = "https://thing.com"
 )
 
+// Setup logging
+var log = logging.MustGetLogger("example")
+
+// Example format string. Everything except the message has a custom color
+// which is dependent on the log level. Many fields have a custom output
+// formatting too, eg. the time returns the hour down to the milli second.
+var format = logging.MustStringFormatter(
+	`%{color}🌮 %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+)
+
 func init() {
+	// For demo purposes, create two backend for os.Stderr.
+	backend1 := logging.NewLogBackend(os.Stderr, "", 0)
+	backend2 := logging.NewLogBackend(os.Stderr, "", 0)
+
+	// For messages written to backend2 we want to add some additional
+	// information to the output, including the used log level and the name of
+	// the function.
+	backend2Formatter := logging.NewBackendFormatter(backend2, format)
+
+	// Only errors and more severe messages should be sent to backend1
+	backend1Leveled := logging.AddModuleLevel(backend1)
+	backend1Leveled.SetLevel(logging.ERROR, "")
+
+	// Set the backends to be used.
+	logging.SetBackend(backend1Leveled, backend2Formatter)
+
 	flag.BoolVar(&isInteractive, "interactive", false, "interactive meal generation")
 	flag.BoolVar(&isInteractive, "i", false, "interactive meal generation (alias)")
 	flag.BoolVar(&test, "test", false, "do test thing")
@@ -61,15 +87,15 @@ func init() {
 		usageAndExit("Insufficient flags", 0)
 	}
 	if test {
-		fmt.Printf("This is a test\n")
+		log.Debug("This is a test\n")
 		userToken = api.Login("username", "password")
-		fmt.Printf("userToken is: %s", userToken)
+		log.Debug("userToken is: %s", userToken)
 
 		fmt.Printf("This is something else %s \n", os.Args[2])
 		if utils.IsInArray(os.Args[2], order.Mealtypes) {
-			fmt.Print("WE FOUND IT\n")
+			log.Debug("WE FOUND IT\n")
 		} else {
-			fmt.Print("we didnt find it\n")
+			log.Debug("we didnt find it\n")
 		}
 	}
 	// begin parse tree
@@ -79,40 +105,41 @@ func init() {
 		if len(fName) <= 0 {
 			fName = "anonymous_" + os.Args[1]
 
-			fmt.Println("[WARN] You didn't specify a name for your " + os.Args[1])
-			fmt.Println("\t - using sane default, \"" + fName + "\"")
+			log.Warning("You didn't specify a name for your " + os.Args[1] + "\n" +
+				"\t - using sane default, \"" + fName + "\"")
 		}
 		if len(fFilling) <= 0 || !utils.IsInArray(fFilling, order.Fillings) {
 			fFilling = order.Fillings[0]
 
-			fmt.Println("[WARN] You didn't specify a filling for your " + os.Args[1])
-			fmt.Println("\t - using sane default, \"" + fFilling + "\"")
+			log.Warning(" You didn't specify a filling for your " + os.Args[1] + "\n" +
+				"\t - using sane default, \"" + fFilling + "\"")
 		}
 		if len(fBeans) <= 0 || !utils.IsInArray(fBeans, order.Beans) {
 			fBeans = order.Beans[0]
 
-			fmt.Println("[WARN] You didn't specify a bean type for your " + os.Args[1])
-			fmt.Println("\t - using sane default, \"" + fBeans + "\"")
+			log.Warning(" You didn't specify a bean type for your " + os.Args[1] + "\n" +
+				"\t - using sane default, \"" + fBeans + "\"")
 		}
 		if len(fRice) <= 0 || !utils.IsInArray(fRice, order.Rice) {
 			fRice = order.Rice[0]
 
-			fmt.Println("[WARN] You didn't specify a rice type for your " + os.Args[1])
-			fmt.Println("\t - using sane default, \"" + fRice + "\"")
+			log.Warning(" You didn't specify a rice type for your " + os.Args[1] + "\n" +
+				"\t - using sane default, \"" + fRice + "\"")
 		}
 		if len(fToppings) <= 0 {
 			fToppings = []string{order.Toppings[0]}
 
-			fmt.Println("[WARN] You didn't specify a for  toppings list for your " + os.Args[1])
-			fmt.Println("\t - using sane default, \"" + fToppings[0] + "\"")
+			log.Warning(" You didn't specify a for  toppings list for your " + os.Args[1] + "\n" +
+				"\t - using sane default, \"" + fToppings[0] + "\"")
 		}
 		if len(fDrink) <= 0 {
-			fmt.Println("[WARN] you didn't specify a drink for your meal")
-			fmt.Println("\t - that's fine... I hope it's not spicy")
+			log.Warning(" you didn't specify a drink for your meal" + "\n" +
+				"\t - that's fine... I hope it's not spicy")
 		}
 		if fStoreID == 0 {
 			// TODO:nag for root store id, probaly not legit etc
 		}
+
 		myOrder := order.Order{
 			Name:     fName,
 			Mealtype: os.Args[1],
@@ -127,9 +154,9 @@ func init() {
 		if err != nil {
 			fmt.Print(err)
 		}
-		fmt.Println("[INFO] One " + myOrder.Name + ", coming up!")
-		fmt.Println(string(myJSONObj))
-		fmt.Println("Is this order correct? [y/N]")
+		log.Notice("One " + myOrder.Name + ", coming up!" + "\n" +
+			string(myJSONObj))
+		log.Notice("Is this order correct? [y/N]")
 		// r  := fmt.Scan(a)
 
 	} else {
@@ -153,6 +180,13 @@ func init() {
 }
 
 func main() {
+
+	// log.Debugf("debug %s", Password("secret"))
+	// log.Info("info")
+	// log.Notice("notice")
+	// log.Warning("warning")
+	// log.Error("err")
+	// log.Critical("crit")
 	if version {
 		fmt.Printf("Chipotle CLI version %s,build %s", config.VERSION, config.GITCOMMIT)
 		return
@@ -180,21 +214,21 @@ func usageAndExit(message string, exitCode int) {
 }
 
 func interactive() {
-	g, err := gocui.NewGui(gocui.OutputNormal)
-	if err != nil {
-		log.Panicln(err)
-	}
-	defer g.Close()
-
-	g.SetManagerFunc(layout)
-
-	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-		log.Panicln(err)
-	}
+	// g, err := gocui.NewGui(gocui.OutputNormal)
+	// if err != nil {
+	// 	log.Panicln(err)
+	// }
+	// defer g.Close()
+	//
+	// g.SetManagerFunc(layout)
+	//
+	// if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
+	// 	log.Panicln(err)
+	// }
+	//
+	// if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
+	// 	log.Panicln(err)
+	// }
 }
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
