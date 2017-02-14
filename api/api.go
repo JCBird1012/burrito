@@ -7,7 +7,8 @@ import (
 	"net/http"
 )
 
-const BASE_URL string = "https://order.chipotle.com"
+// BaseURL does things
+const BaseURL string = "https://order.chipotle.com"
 
 type loginInformation struct {
 	Username string
@@ -15,6 +16,7 @@ type loginInformation struct {
 	Persist  bool
 }
 
+// Location is a location
 type Location struct {
 	ID                 int     `json:"Id"`
 	Name               string  `json:"Name"`
@@ -36,7 +38,7 @@ type Location struct {
 }
 
 // Login , does things
-func Login(username string, password string) (userToken string) {
+func Login(username string, password string) (UserToken string) {
 	login := &loginInformation{
 		Username: username,
 		Password: password,
@@ -46,7 +48,7 @@ func Login(username string, password string) (userToken string) {
 
 	b := bytes.NewBufferString(string(loginJSON))
 
-	req, _ := http.NewRequest("POST", BASE_URL+"/api/customer/login", b)
+	req, _ := http.NewRequest("POST", BaseURL+"/api/customer/login", b)
 
 	req.Header.Add("content-type", "application/json")
 
@@ -66,14 +68,15 @@ func Login(username string, password string) (userToken string) {
 		panic(err)
 	}
 
-	var USER_COOKIE string = response["CustomerToken"].(string)
-	return USER_COOKIE
+	return response["CustomerToken"].(string)
+
 }
 
+// GetLocations does things
 func GetLocations(postalCode string) (response []Location) {
 	b := bytes.NewBufferString(`{"Address": ` + postalCode + `, "Radius":50, "StartIndex":1, "ReturnCount": 5}`)
 
-	req, _ := http.NewRequest("POST", BASE_URL+"/api/restaurant/restaurantssearch", b)
+	req, _ := http.NewRequest("POST", BaseURL+"/api/restaurant/restaurantssearch", b)
 
 	req.Header.Add("content-type", "application/json")
 
@@ -91,4 +94,10 @@ func GetLocations(postalCode string) (response []Location) {
 	json.Unmarshal(body, &locations)
 
 	return locations
+}
+
+// SendOrderToSChipotleByStoreID does things too
+func SendOrderToSChipotleByStoreID(storeID int, loginToken string, order string) bool {
+
+	return false
 }

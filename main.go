@@ -9,7 +9,7 @@ import (
 
 	"github.com/JCBird1012/chipotle-cli/api"
 	"github.com/JCBird1012/chipotle-cli/config"
-	"github.com/JCBird1012/chipotle-cli/orderModel"
+	"github.com/JCBird1012/chipotle-cli/order-model"
 	"github.com/JCBird1012/chipotle-cli/utils"
 	"github.com/jessfraz/weather/geocode"
 	"github.com/jroimartin/gocui"
@@ -104,7 +104,7 @@ func init() {
 	flag.BoolVar(&fShowMenu, "menu", true, "Shows the availible menu")
 
 	flag.Usage = func() {
-		fmt.Printf("Usage: mexi-get [Mealtype][<options> ...]\n")
+		fmt.Printf("Usage: chipotle-cli [Mealtype][<options> ...]\n")
 		fmt.Printf("Options:\n")
 		flag.PrintDefaults()
 	}
@@ -114,6 +114,7 @@ func init() {
 	}
 	if fShowMenu {
 		fmt.Println(order.PrettyMenu())
+		os.Exit(0)
 	}
 	if test {
 		log.Debug("This is a test\n")
@@ -189,7 +190,8 @@ func init() {
 			string(myJSONObj))
 		c := utils.AskForConfirmation("Is this order correct?")
 		if c {
-			log.Notice("sweet... ordering.")
+			log.Notice("sweet... ordering.")]
+			order.send(myOrder)
 		} else {
 			log.Error("order is not correct, sad")
 		}

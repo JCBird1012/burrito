@@ -3,6 +3,8 @@ package order
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/JCBird1012/chipotle-cli/api"
 )
 
 // Mealtypes defines what physical form your torilla will take
@@ -46,17 +48,14 @@ type Order struct {
 func PrettyMenu() string {
 	var report string
 
-	strMealTypes, err := json.Marshal(Mealtypes)
-	strBeans, err := json.Marshal(Beans)
-	strRice, err := json.Marshal(Rice)
-	strFillings, err := json.Marshal(Fillings)
-	strToppings, err := json.Marshal(Toppings)
-	strTortillas, err := json.Marshal(Tortillas)
-	strDrinks, err := json.Marshal(Drinks)
-	strSides, err := json.Marshal(Sides)
-	if err != nil {
-		return "Error parsing menu"
-	}
+	strMealTypes, _ := json.Marshal(Mealtypes)
+	strBeans, _ := json.Marshal(Beans)
+	strRice, _ := json.Marshal(Rice)
+	strFillings, _ := json.Marshal(Fillings)
+	strToppings, _ := json.Marshal(Toppings)
+	strTortillas, _ := json.Marshal(Tortillas)
+	strDrinks, _ := json.Marshal(Drinks)
+	strSides, _ := json.Marshal(Sides)
 
 	report = fmt.Sprintln(
 		" + ---- Food Configuration: \n" +
@@ -71,4 +70,23 @@ func PrettyMenu() string {
 			" - sides:\t" + string(strSides) + "\n")
 
 	return report
+}
+
+// ProcessOrder does stuff
+func ProcessOrder(order Order) bool {
+
+	// Let user choose the location, or if defined used the
+	//  command line location or storeID
+	locations := api.GetLocations("12180")
+
+	// Do the picking here
+	// <picking>
+	// for now just use the first one
+	location := locations[0]
+
+	// Prompt the user for their login credentials
+	token := api.Login("username", "password")
+
+	strOrder, _ := json.Marshal(order)
+	return api.SendOrderToSChipotleByStoreID(location.ID, token, string(strOrder))
 }
