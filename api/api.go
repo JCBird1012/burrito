@@ -9,7 +9,8 @@ import (
 	"strconv"
 )
 
-const BASE_URL string = "https://order.chipotle.com"
+// BaseURL does things
+const BaseURL string = "https://order.chipotle.com"
 
 type loginInformation struct {
 	Username string
@@ -17,6 +18,7 @@ type loginInformation struct {
 	Persist  bool
 }
 
+// Location is a location
 type Location struct {
 	Id                 int     `json:"Id"`
 	Name               string  `json:"Name"`
@@ -68,7 +70,7 @@ func Login(username string, password string) (userToken string) {
 
 	b := bytes.NewBufferString(string(loginJSON))
 
-	req, _ := http.NewRequest("POST", BASE_URL+"/api/customer/login", b)
+	req, _ := http.NewRequest("POST", BaseURL+"/api/customer/login", b)
 
 	req.Header.Add("content-type", "application/json")
 
